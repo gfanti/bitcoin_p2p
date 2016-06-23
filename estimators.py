@@ -3,14 +3,16 @@ import networkx as nx
 import random
 from sortedcontainers import SortedDict
 import itertools
+import math
 import numpy as np
 
 
 
 class Estimator(object):
 
-	def  __init__(self, G):
+	def  __init__(self, G, debug = False):
 		self.G = G
+		self.debug = debug
 
 	def compute_accuracy(self, source, candidates):
 		if source in candidates:
@@ -40,8 +42,8 @@ class Estimator(object):
 
 class FirstSpyEstimator(Estimator):
 
-	def __init__(self, G):
-		super(FirstSpyEstimator, self).__init__(G)
+	def __init__(self, G, debug = False):
+		super(FirstSpyEstimator, self).__init__(G, debug)
 
 	def estimate_source(self):
 		''' Returns the list of nodes that first delivered the message to 
@@ -102,8 +104,8 @@ class MLEstimatorLine(Estimator):
 
 class MLEstimator(Estimator):
 
-	def __init__(self, G):
-		super(MLEstimator, self).__init__(G)
+	def __init__(self, G, debug = False):
+		super(MLEstimator, self).__init__(G, debug)
 
 	def estimate_source(self):
 		''' Returns the list of nodes that have the maximumum likelihood of being
@@ -169,13 +171,13 @@ class MLEstimator(Estimator):
 
 class MLEstimatorMP(Estimator):
 
-	def __init__(self, G):
-		super(MLEstimatorMP, self).__init__(G)
+	def __init__(self, G, debug = False):
+		super(MLEstimatorMP, self).__init__(G, debug)
 		self.timestamp_dict = None
 		self.rx_time = {}
 		self.count_dict = {}
 		self.adversary = self.G.adversary
-		self.feasible = True
+		
 
 	def estimate_source(self):
 		''' Returns the list of nodes that have the maximumum likelihood of being
@@ -186,17 +188,18 @@ class MLEstimatorMP(Estimator):
 			print 'No timestamps found.'
 			return []
 
-		# print 'timestamps are ', self.G.adversary_timestamps
-		# print 'adjacency is ', self.G.edges()
-		
 
 		# Get the starting set of nodes
 		self.timestamp_dict = self.G.generate_timestamp_dict()
-		self.update_boundary_nodes()
+		# try not updating boundary nodes
+		# ---------------------------------self.update_boundary_nodes()
 		candidates = self.get_starting_set(self.timestamp_dict)
 
-		# print 'candidates are', candidates, 'before pruning'
-		# print 'timestamp_dict', timestamp_dict
+		if self.debug:
+			# print 'timestamps are ', self.G.adversary_timestamps
+			print 'adjacency is ', self.G.edges()
+			print 'candidates are', candidates
+			print 'timestamps are: ', self.timestamp_dict
 		# self.G.draw_plot()
 		# Now check if each of these nodes in the radius is eligible
 
@@ -211,11 +214,14 @@ class MLEstimatorMP(Estimator):
 
 		# print 'candidates: ', candidates, 'timestamps', self.timestamp_dict, '\n'
 		for candidate in candidates:
-			# print '\nprocessing candidate ', candidate, '\n'
 			self.feasible = True
 			# -----Run the message-passing------
 			count = self.pass_down_messages(candidate, candidate)
-			# print 'candidate', candidate, ' has count ', count
+			
+			if self.debug:
+				print '\nprocessing candidate ', candidate, '\n'
+				print 'candidate', candidate, ' has count ', count
+			
 			counts += [count]
 
 		final_candidates = [candidate for (candidate, score) in zip(candidates, counts) if score == max(counts)]
@@ -225,23 +231,28 @@ class MLEstimatorMP(Estimator):
 	def update_boundary_nodes(self):
 		''' Make it look like all the nodes at the boundary have timestamp T+1 '''
 		for n in self.G.nodes():
-			if self.G.node[n]['infected'] and (n not in self.timestamp_dict):
+			# if self.G.node[n]['infected'] and (n not in self.timestamp_dict):
+			# 	self.timestamp_dict[n] = self.G.spreading_time + 1
+			if (not n == self.G.adversary) and (n not in self.timestamp_dict):
 				self.timestamp_dict[n] = self.G.spreading_time + 1
 
-	def get_infected_tree_neighbors(self, node, remove_item = None):
+	def get_tree_neighbors(self, node, remove_item = None):
 		''' Get a node's neighbors that are infected and not the adversary, except 
 		    for item remove_item'''
 
 		neighbors = [n for n in self.G.neighbors(node) if 
 						(self.G.node[n]['infected'] == True) and
 						not (n == self.adversary) and
-						not (n == remove_item)]
+						not (n == remove_item) and 
+						(n in self.timestamp_dict)]
 		return neighbors
 			
 	def compute_tx_time(self, target, source_flag = False):
 		# Otherwise, create the list of possible rx times for the children of target
 		tx_time = set()
-		# print 'self.rx_time[target] = ', self.rx_time[target]
+
+		if self.debug:
+			print 'self.rx_time[', target, '] = ', self.rx_time[target]
 		for t in self.rx_time[target]:
 			if source_flag:
 				tx_time.update([t+i for i in range(1, self.G.tree_degree + 2)])
@@ -260,9 +271,11 @@ class MLEstimatorMP(Estimator):
 		# If source = target, then we're at the root
 		if source == target:
 			self.rx_time[source] = [0]
+			if self.debug:
+				print 'self.rx_time[', source, '] = ', self.rx_time[source]
 
 			# Get the child nodes
-			child_nodes = self.get_infected_tree_neighbors(target)
+			child_nodes = self.get_tree_neighbors(target)
 
 		else:
 			# Make sure that there's an edge between source and target
@@ -270,7 +283,7 @@ class MLEstimatorMP(Estimator):
 				return 0		
 
 			# Identify the target's child nodes
-			child_nodes = self.get_infected_tree_neighbors(target, source)
+			child_nodes = self.get_tree_neighbors(target, source)
 
 		# Initialize the down messages		
 		self.count_dict[target] = {}
@@ -282,7 +295,7 @@ class MLEstimatorMP(Estimator):
 		if not child_nodes:
 			# Now set the up-messages to unit value
 			for item in self.rx_time[target]:
-				self.count_dict[target][item] = 1
+				self.count_dict[target][item] = 1 # number of permutations possible (i.e. 1)
 			# print 'at a leaf', target
 			return
 
@@ -300,11 +313,16 @@ class MLEstimatorMP(Estimator):
 
 			# Prune the possible tx_times based on the observed timestamps at the receiver
 			# print 'child ', child, 'has timestamp', self.timestamp_dict[child], 'and our spreading_time is ', self.G.spreading_time
+			# if (self.timestamp_dict[child] > self.G.tree_degree):
+			# 	tx_time = [i for i in tx_time if (i >= self.timestamp_dict[child] - self.G.tree_degree)]
+			# else:
 			tx_time = [i for i in tx_time if (i >= self.timestamp_dict[child] - self.G.tree_degree)
 					   					 and (i < self.timestamp_dict[child])]
 			# print 'pruned tx_time for child', child, ' is:',tx_time
 
 			self.rx_time[child] = tx_time
+			if self.debug:
+				print 'self.rx_time[', child, '] = ', tx_time
 			
 			# If there are no valid timestamps, then this candidate is not feasible
 			if not tx_time:
@@ -313,6 +331,7 @@ class MLEstimatorMP(Estimator):
 			# Add the node's feasible rx_times to the list
 			tx_time_list += [tx_time]
 			self.pass_down_messages(target, child)
+
 
 
 		# Aggregate the messages from the children and pass it up the chain
@@ -336,14 +355,24 @@ class MLEstimatorMP(Estimator):
 		tx_time_list += [self.rx_time[node]]
 		# print 'tx_time_list', tx_time_list
 		tuple_list = [list(item) for item in list(itertools.product(*tx_time_list)) if len(set(item)) == len(item)]
+		tuple_list = [item for item in tuple_list if ((max(item) - min(item)) <= self.G.tree_degree) ]
 		# print 'tuple_list', tuple_list
 
 		# Count the number of paths that use each candidate arrival time at the source
 		for item in tuple_list:
 			# Multiply the counts associated with each coordinate
 			m = [self.count_dict[neighbors[i]][item[i]] for i in range(len(item)-1)]
-			# print 'm is', m, 'item is ', item
 			self.count_dict[node][item[-1]] += np.prod(m)
+			# print 'm is ', m
+
+			# Sum the logs of the counts
+			# m = [math.log(self.count_dict[neighbors[i]][item[i]]) for i in range(len(item)-1)]
+			# # Instead of multiplying the values, we add the sum
+			# self.count_dict[node][item[-1]] += sum(m)
+
+		if self.debug:
+			print 'up-counts for ', node, 'is ', self.count_dict[node]
+			
 
 
 

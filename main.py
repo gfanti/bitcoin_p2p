@@ -4,9 +4,11 @@ from graph_rep import *
 from estimators import *
 from utils import *
 
-degrees = xrange(2,4,1)
-trials = 1000
-check_ml_flag = True
+degrees = xrange(2,5,1)
+trials = 10
+check_ml = True
+write_results_to_file = True
+debug = False
 accuracies_first = []
 accuracies_ml_line = []
 accuracies_ml = []
@@ -20,7 +22,7 @@ for degree in degrees:
 	for i in range(trials):
 		if (i % 100) == 0:
 			print 'On trial ', i, ' out of ', trials
-		G = RegularTree(degree,degree + 1)
+		G = RegularTree(degree,degree + 3)
 		G.spread_message()
 		
 		# First spy estimator
@@ -36,9 +38,9 @@ for degree in degrees:
 		# acc_ml_line = est_ml_line.compute_accuracy(G.source, result_ml_line)
 		# count_ml_line += acc_ml_line
 		
-		if check_ml_flag:
+		if check_ml:
 			# ML estimator general
-			est_ml = MLEstimatorMP(G)
+			est_ml = MLEstimatorMP(G, debug)
 			result_ml = est_ml.estimate_source()
 			acc_ml = est_ml.compute_accuracy(G.source, result_ml)
 			count_ml += acc_ml
@@ -54,11 +56,12 @@ for degree in degrees:
 	# print 'accuracies, ML line:', accuracies_ml_line
 	print 'accuracies, ML:', accuracies_ml
 
-	result_types = ['first-spy accuracy', 'ML accuracy']
-	param_types = ['degrees']
-	results = [[accuracies_first], [accuracies_ml]]
-	params = [[i for i in degrees]]
-	write_results(result_types, results, param_types, params)
+	if write_results_to_file:
+		result_types = ['first-spy accuracy', 'ML accuracy']
+		param_types = ['degrees']
+		results = [[accuracies_first], [accuracies_ml]]
+		params = [[i for i in degrees]]
+		write_results(result_types, results, param_types, params)
 
 print 'The first-spy estimator accuracy: ', accuracies_first
 print 'The ML estimator accuracy: ', accuracies_ml
