@@ -2,10 +2,11 @@
 
 from graph_rep import *
 from estimators import *
+from utils import *
 
-degrees = xrange(2,3,2)
+degrees = xrange(2,4,1)
 trials = 1000
-check_ml_flag = False
+check_ml_flag = True
 accuracies_first = []
 accuracies_ml_line = []
 accuracies_ml = []
@@ -58,12 +59,8 @@ print 'The ML line estimator accuracy: ', accuracies_ml_line
 print 'The ML estimator accuracy: ', accuracies_ml
 print 'Tested on degrees', degrees
 
-filename = 'results' + "_".join([str(i) for i in degrees])
-f = open(filename, 'w')
-val = 'first-spy estimator accuracy: ', accuracies_first
-f.write(val)
-val = 'ML estimator accuracy: ', accuracies_ml
-f.write(val)
-val = 'Tested on degrees', degrees
-f.write(val)
-f.close()
+result_types = ['first-spy accuracy', 'ML accuracy']
+param_types = ['degrees']
+results = [[accuracies_first], [accuracies_ml]]
+params = [[i for i in degrees]]
+write_results(result_types, results, param_types, params)
