@@ -54,13 +54,13 @@ for degree in degrees:
 	# print 'accuracies, ML line:', accuracies_ml_line
 	print 'accuracies, ML:', accuracies_ml
 
+	result_types = ['first-spy accuracy', 'ML accuracy']
+	param_types = ['degrees']
+	results = [[accuracies_first], [accuracies_ml]]
+	params = [[i for i in degrees]]
+	write_results(result_types, results, param_types, params)
+
 print 'The first-spy estimator accuracy: ', accuracies_first
-print 'The ML line estimator accuracy: ', accuracies_ml_line
 print 'The ML estimator accuracy: ', accuracies_ml
 print 'Tested on degrees', degrees
 
-result_types = ['first-spy accuracy', 'ML accuracy']
-param_types = ['degrees']
-results = [[accuracies_first], [accuracies_ml]]
-params = [[i for i in degrees]]
-write_results(result_types, results, param_types, params)
