@@ -3,7 +3,7 @@
 from graph_rep import *
 from estimators import *
 
-degrees = xrange(2,20,2)
+degrees = xrange(2,3,2)
 trials = 1000
 check_ml_flag = False
 accuracies_first = []
@@ -57,3 +57,13 @@ print 'The first-spy estimator accuracy: ', accuracies_first
 print 'The ML line estimator accuracy: ', accuracies_ml_line
 print 'The ML estimator accuracy: ', accuracies_ml
 print 'Tested on degrees', degrees
+
+filename = 'results' + "_".join([str(i) for i in degrees])
+f = open(filename, 'w')
+val = 'first-spy estimator accuracy: ', accuracies_first
+f.write(val)
+val = 'ML estimator accuracy: ', accuracies_ml
+f.write(val)
+val = 'Tested on degrees', degrees
+f.write(val)
+f.close()
