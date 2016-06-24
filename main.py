@@ -3,9 +3,10 @@
 from graph_rep import *
 from estimators import *
 from utils import *
+import time
 
-degrees = xrange(2,5,1)
-trials = 10
+degrees = xrange(7,8,1)
+trials = 20
 check_ml = True
 write_results_to_file = True
 debug = False
@@ -13,6 +14,8 @@ accuracies_first = []
 accuracies_ml_line = []
 accuracies_ml = []
 
+# start = time.time()
+# end = start
 for degree in degrees:
 	print 'On degree ', degree
 	count_first = 0
@@ -47,6 +50,9 @@ for degree in degrees:
 
 		# if not acc_ml_line == acc_ml:
 		# 	break
+		# print 'Trial ', i, ': ', time.time() - end
+		# end = time.time()
+		# print 'Accuracy', acc_ml
 
 	accuracies_first += [float(count_first) / trials]
 	accuracies_ml_line += [float(count_ml_line) / trials]
@@ -66,4 +72,5 @@ for degree in degrees:
 print 'The first-spy estimator accuracy: ', accuracies_first
 print 'The ML estimator accuracy: ', accuracies_ml
 print 'Tested on degrees', degrees
-
+# end = time.time()
+# print 'The runtime is ', end-start
