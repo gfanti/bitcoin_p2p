@@ -5,11 +5,15 @@ from estimators import *
 from utils import *
 import time
 
-degrees = xrange(7,8,1)
+
+degrees = xrange(2,3,1)
 trials = 20
 check_ml = True
-write_results_to_file = True
-debug = False
+
+
+args = parse_arguments()
+
+
 accuracies_first = []
 accuracies_ml_line = []
 accuracies_ml = []
@@ -43,7 +47,7 @@ for degree in degrees:
 		
 		if check_ml:
 			# ML estimator general
-			est_ml = MLEstimatorMP(G, debug)
+			est_ml = MLEstimatorMP(G, args.verbose)
 			result_ml = est_ml.estimate_source()
 			acc_ml = est_ml.compute_accuracy(G.source, result_ml)
 			count_ml += acc_ml
@@ -62,12 +66,12 @@ for degree in degrees:
 	# print 'accuracies, ML line:', accuracies_ml_line
 	print 'accuracies, ML:', accuracies_ml
 
-	if write_results_to_file:
+	if args.write:
 		result_types = ['first-spy accuracy', 'ML accuracy']
 		param_types = ['degrees']
 		results = [[accuracies_first], [accuracies_ml]]
 		params = [[i for i in degrees]]
-		write_results(result_types, results, param_types, params)
+		write_results(result_types, results, param_types, params, args.run)
 
 print 'The first-spy estimator accuracy: ', accuracies_first
 print 'The ML estimator accuracy: ', accuracies_ml

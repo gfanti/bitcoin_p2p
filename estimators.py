@@ -10,9 +10,9 @@ import numpy as np
 
 class Estimator(object):
 
-	def  __init__(self, G, debug = False):
+	def  __init__(self, G, verbose = False):
 		self.G = G
-		self.debug = debug
+		self.verbose = verbose
 
 	def compute_accuracy(self, source, candidates):
 		if source in candidates:
@@ -42,8 +42,8 @@ class Estimator(object):
 
 class FirstSpyEstimator(Estimator):
 
-	def __init__(self, G, debug = False):
-		super(FirstSpyEstimator, self).__init__(G, debug)
+	def __init__(self, G, verbose = False):
+		super(FirstSpyEstimator, self).__init__(G, verbose)
 
 	def estimate_source(self):
 		''' Returns the list of nodes that first delivered the message to 
@@ -104,8 +104,8 @@ class MLEstimatorLine(Estimator):
 
 class MLEstimator(Estimator):
 
-	def __init__(self, G, debug = False):
-		super(MLEstimator, self).__init__(G, debug)
+	def __init__(self, G, verbose = False):
+		super(MLEstimator, self).__init__(G, verbose)
 
 	def estimate_source(self):
 		''' Returns the list of nodes that have the maximumum likelihood of being
@@ -171,8 +171,8 @@ class MLEstimator(Estimator):
 
 class MLEstimatorMP(Estimator):
 
-	def __init__(self, G, debug = False):
-		super(MLEstimatorMP, self).__init__(G, debug)
+	def __init__(self, G, verbose = False):
+		super(MLEstimatorMP, self).__init__(G, verbose)
 		self.timestamp_dict = None
 		self.rx_time = {}
 		self.count_dict = {}
@@ -195,7 +195,7 @@ class MLEstimatorMP(Estimator):
 		# ---------------------------------self.update_boundary_nodes()
 		candidates = self.get_starting_set(self.timestamp_dict)
 
-		if self.debug:
+		if self.verbose:
 			# print 'timestamps are ', self.G.adversary_timestamps
 			print 'adjacency is ', self.G.edges()
 			print 'candidates are', candidates
@@ -218,7 +218,7 @@ class MLEstimatorMP(Estimator):
 			# -----Run the message-passing------
 			count = self.pass_down_messages(candidate, candidate)
 			
-			if self.debug:
+			if self.verbose:
 				print '\nprocessing candidate ', candidate, '\n'
 				print 'candidate', candidate, ' has count ', count
 			
@@ -251,7 +251,7 @@ class MLEstimatorMP(Estimator):
 		# Otherwise, create the list of possible rx times for the children of target
 		tx_time = set()
 
-		if self.debug:
+		if self.verbose:
 			print 'self.rx_time[', target, '] = ', self.rx_time[target]
 		for t in self.rx_time[target]:
 			if source_flag:
@@ -271,7 +271,7 @@ class MLEstimatorMP(Estimator):
 		# If source = target, then we're at the root
 		if source == target:
 			self.rx_time[source] = [0]
-			if self.debug:
+			if self.verbose:
 				print 'self.rx_time[', source, '] = ', self.rx_time[source]
 
 			# Get the child nodes
@@ -321,7 +321,7 @@ class MLEstimatorMP(Estimator):
 			# print 'pruned tx_time for child', child, ' is:',tx_time
 
 			self.rx_time[child] = tx_time
-			if self.debug:
+			if self.verbose:
 				print 'self.rx_time[', child, '] = ', tx_time
 			
 			# If there are no valid timestamps, then this candidate is not feasible
@@ -370,7 +370,7 @@ class MLEstimatorMP(Estimator):
 			# # Instead of multiplying the values, we add the sum
 			# self.count_dict[node][item[-1]] += sum(m)
 
-		if self.debug:
+		if self.verbose:
 			print 'up-counts for ', node, 'is ', self.count_dict[node]
 			
 
