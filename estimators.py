@@ -212,17 +212,23 @@ class MLEstimatorMP(Estimator):
 
 		# print 'adjacency', self.G.edges()
 
+
 		# print 'candidates: ', candidates, 'timestamps', self.timestamp_dict, '\n'
 		for candidate in candidates:
+			if self.verbose:
+				print '\nprocessing candidate ', candidate, '\n'
+
 			self.feasible = True
 			# -----Run the message-passing------
 			count = self.pass_down_messages(candidate, candidate)
 			
 			if self.verbose:
-				print '\nprocessing candidate ', candidate, '\n'
 				print 'candidate', candidate, ' has count ', count
 			
 			counts += [count]
+
+		if self.verbose:
+			print 'candidates counts are ', zip(candidates, counts)
 
 		final_candidates = [candidate for (candidate, score) in zip(candidates, counts) if score == max(counts)]
 		return final_candidates
@@ -355,8 +361,10 @@ class MLEstimatorMP(Estimator):
 		tx_time_list += [self.rx_time[node]]
 		# print 'tx_time_list', tx_time_list
 		tuple_list = [list(item) for item in list(itertools.product(*tx_time_list)) if len(set(item)) == len(item)]
-		tuple_list = [item for item in tuple_list if ((max(item) - min(item)) <= self.G.tree_degree) ]
+		tuple_list = [item for item in tuple_list if ((max(item) - min(item)) <= (self.G.tree_degree+1)) ]
+		
 		# print 'tuple_list', tuple_list
+
 
 		# Count the number of paths that use each candidate arrival time at the source
 		for item in tuple_list:

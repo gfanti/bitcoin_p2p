@@ -8,13 +8,11 @@ import time
 if __name__ == "__main__":
 	
 	
-	degrees = xrange(6,7,1)
-	trials = 1
+	degrees = xrange(4,6,1)
 	check_ml = True
 
 
 	args = parse_arguments()
-
 
 	accuracies_first = []
 	accuracies_ml_line = []
@@ -29,10 +27,10 @@ if __name__ == "__main__":
 		count_ml_line = 0
 		count_ml = 0
 
-		for i in range(trials):
+		for i in range(args.trials):
 			if (i % 100) == 0:
-				print 'On trial ', i, ' out of ', trials
-			G = RegularTree(degree,degree+5)
+				print 'On trial ', i+1, ' out of ', args.trials
+			G = RegularTree(degree,degree+3)
 			G.spread_message()
 			
 			# First spy estimator
@@ -61,9 +59,9 @@ if __name__ == "__main__":
 			# end = time.time()
 			# print 'Accuracy', acc_ml
 
-		accuracies_first += [float(count_first) / trials]
-		accuracies_ml_line += [float(count_ml_line) / trials]
-		accuracies_ml += [float(count_ml) / trials]
+		accuracies_first += [float(count_first) / args.trials]
+		accuracies_ml_line += [float(count_ml_line) / args.trials]
+		accuracies_ml += [float(count_ml) / args.trials]
 
 		print 'accuracies, first-spy:', accuracies_first
 		# print 'accuracies, ML line:', accuracies_ml_line
