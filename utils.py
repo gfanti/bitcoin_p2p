@@ -38,6 +38,8 @@ def parse_arguments():
 	                    action="store_true")
 	parser.add_argument("-w", "--write", help="writes the results to file",
 	                    action="store_true")
+	parser.add_argument("-t","--measure_time", help="output timing measurements",
+			    action="store_true")
 	args = parser.parse_args()
 
 	if not (args.run is None):
@@ -46,5 +48,6 @@ def parse_arguments():
 	print '---Selected Parameters---'
 	print 'verbose: ', args.verbose
 	print 'write to file: ', args.write
-	print 'run: ', args.run, '\n'
+	print 'run: ', args.run
+	print 'measure time: ', args.measure_time, '\n'
 	return args

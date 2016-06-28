@@ -6,8 +6,8 @@ from utils import *
 import time
 
 
-degrees = xrange(2,3,1)
-trials = 20
+degrees = xrange(6,7,1)
+trials = 1
 check_ml = True
 
 
@@ -18,8 +18,9 @@ accuracies_first = []
 accuracies_ml_line = []
 accuracies_ml = []
 
-# start = time.time()
-# end = start
+if args.measure_time:
+	start = time.time()
+	end = start
 for degree in degrees:
 	print 'On degree ', degree
 	count_first = 0
@@ -29,7 +30,7 @@ for degree in degrees:
 	for i in range(trials):
 		if (i % 100) == 0:
 			print 'On trial ', i, ' out of ', trials
-		G = RegularTree(degree,degree + 3)
+		G = RegularTree(degree,degree+5)
 		G.spread_message()
 		
 		# First spy estimator
@@ -76,5 +77,7 @@ for degree in degrees:
 print 'The first-spy estimator accuracy: ', accuracies_first
 print 'The ML estimator accuracy: ', accuracies_ml
 print 'Tested on degrees', degrees
-# end = time.time()
-# print 'The runtime is ', end-start
+
+if args.measure_time:
+	end = time.time()
+	print 'The runtime is ', end-start
