@@ -30,6 +30,8 @@ if __name__ == "__main__":
 		for i in range(args.trials):
 			if (i % 100) == 0:
 				print 'On trial ', i+1, ' out of ', args.trials
+
+			# Gossip trials
 			G = RegularTreeGossip(degree,degree+3)
 			G.spread_message()
 			
@@ -39,13 +41,6 @@ if __name__ == "__main__":
 			acc_first = est_first.compute_accuracy(G.source, result_first)
 			count_first += acc_first
 
-
-			# # ML estimator line
-			# est_ml_line = MLEstimatorLine(G)
-			# result_ml_line = est_ml_line.estimate_source()
-			# acc_ml_line = est_ml_line.compute_accuracy(G.source, result_ml_line)
-			# count_ml_line += acc_ml_line
-			
 			if check_ml:
 				# ML estimator general
 				est_ml = MLEstimatorMP(G, args.verbose)
@@ -53,11 +48,11 @@ if __name__ == "__main__":
 				acc_ml = est_ml.compute_accuracy(G.source, result_ml)
 				count_ml += acc_ml
 
-			# if not acc_ml_line == acc_ml:
-			# 	break
-			# print 'Trial ', i, ': ', time.time() - end
-			# end = time.time()
-			# print 'Accuracy', acc_ml
+
+			# Diffusion trials
+			G = RegularTreeGossip(degree,4)
+			G.spread_message()
+
 
 		accuracies_first += [float(count_first) / args.trials]
 		accuracies_ml_line += [float(count_ml_line) / args.trials]

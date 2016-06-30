@@ -58,6 +58,49 @@ class RegularTree(nx.Graph):
 		uninfected_neighbors = [neighbor for neighbor in neighbors if self.node[neighbor]['infected'] == False]
 		return uninfected_neighbors
 
+
+class RegularTreeDiffusion(RegularTree):
+
+	def __init__(self, degree = None, spreading_time = None):
+		''' NB: Here the spreading_time	is actually the number of rings of the graph to infect'''
+		super(RegularTreeGossip, self).__init__(degree, spreading_time)
+		self.adversary = -1
+		self.lambda1 = 1 # spreading rate over the diffusion graph
+		self.lambda2 = 1 # spreading rate from a node to the adversary
+		self.adversary_timestamps = {}
+		self.received_timestamps = {}
+
+		self.add_node(self.adversary, infected = False)
+
+	def spread_message(self):
+		new_boundary = []
+		count = 0
+		while count < self.spreading_time:
+			count += 1
+			# cycle through the active nodes, and spread with an exponential clock
+			for node in self.active:
+				# Check that all the nodes have enough neighbors
+				if self.degree(node) < (self.tree_degree):
+					num_missing = (self.tree_degree) - self.degree(node)
+					new_nodes = range(self.max_node + 1, self.max_node + num_missing + 1)
+					self.add_edges(node, new_nodes)
+				# Add the new nodes to the boundary
+				new_boundary += new_nodes
+
+				# Adversary infection time
+				self.adversary_timestamps[node] = self.send_to_adversary(node) 
+				# Neighbor infection times
+				for new_node in new_nodes:
+					self.received_timestamps[new_node] = self.send_to_neighbor(node)
+
+	def send_to_adversary(self, node):
+		return self.received_timestamps[node] + np.random.exponential(self.lambda2)
+
+	def send_to_neighbor(self, node):
+		return self.received_timestamps[node] + np.random.exponential(self.lambda1)
+
+
+
 class RegularTreeGossip(RegularTree):
 
 	def __init__(self, degree = None, spreading_time = None):
@@ -107,7 +150,7 @@ class RegularTreeGossip(RegularTree):
 		candidates = []
 		reached_adversary = False
 
-		# while (not reached_adversary):
+		
 		while (t <= self.spreading_time):
 			current_active = [item for item in self.active]
 			for node in current_active:

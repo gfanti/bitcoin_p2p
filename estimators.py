@@ -52,55 +52,6 @@ class FirstSpyEstimator(Estimator):
 		min_timestamp, candidates = self.G.adversary_timestamps.items()[0]
 		return candidates
 
-class MLEstimatorLine(Estimator):
-
-	def __init__(self, G):
-		super(MLEstimatorLine, self).__init__(G)
-
-	def estimate_source(self):
-		''' Returns the list of nodes that have the maximumum likelihood of being
-		the true source'''
-		
-		if not any(self.G.adversary_timestamps):
-			return []
-		min_timestamp, first_candidates = self.G.adversary_timestamps.items()[0]
-		candidates = [i for i in first_candidates]
-		# print 'min_timestamp',min_timestamp
-		# print 'candidates', candidates
-
-		if (min_timestamp == 1): # msg first reaches adversary at t=1
-			# print 't1 candidates', candidates
-			pass
-		elif (min_timestamp == 2): # msg first reaches adversary at t=2
-			if len(candidates) > 1:
-				pass
-			else:
-				if any(self.G.adversary_timestamps):
-					
-					ts3, next_timestep_candidates = self.G.adversary_timestamps.items()[1]
-					if (ts3 == 3):
-						neighbors = self.G.get_neighbors(candidates)
-						# print 'candidates: ', candidates, 'neighbors: ', neighbors
-						new_candidates = [item for item in neighbors if item in next_timestep_candidates]
-						# print 'new_candidates', new_candidates
-						candidates += new_candidates
-
-		else: # msg first reaches adversary at t=3
-			if len(candidates) == 4:
-				H = self.G.subgraph(candidates)
-				for node in H.nodes():
-					if H.degree(node) == 1:
-						candidates.remove(node)
-			# elif len(candidates) == 3:
-			# 	ts4, neighbor_candidates = self.G.adversary_timestamps.items()[1]
-			# 	H = self.G.subgraph(candidates + neighbor_candidates)
-			# 	for node in H.nodes():
-			# 		if (H.degree(node) == 1 and node in candidates):
-			# 			candidates.remove(node)
-
-		print 'ml line candidates are', candidates
-		return candidates
-
 
 class MLEstimator(Estimator):
 
