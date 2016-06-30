@@ -8,7 +8,7 @@ import time
 if __name__ == "__main__":
 	
 	
-	degrees = xrange(4,6,1)
+	degrees = xrange(2,4,1)
 	check_ml = True
 
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 		for i in range(args.trials):
 			if (i % 100) == 0:
 				print 'On trial ', i+1, ' out of ', args.trials
-			G = RegularTree(degree,degree+3)
+			G = RegularTreeGossip(degree,degree+3)
 			G.spread_message()
 			
 			# First spy estimator

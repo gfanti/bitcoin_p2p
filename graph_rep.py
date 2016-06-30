@@ -11,17 +11,19 @@ class RegularTree(nx.Graph):
 	def __init__(self, degree = None, spreading_time = None):
 		super(RegularTree, self).__init__()
 		self.tree_degree = degree
-		self.adversary = -1
 		self.source = 0
 		self.max_node = 1 # highest-index node in the list
 		self.active = [0] # list of nodes that are not fully surrounded by infected nodes
-		self.adversary_timestamps = SortedDict()
 		self.spreading_time = spreading_time
 		if self.spreading_time is None:
 			self.spreading_time = (self.tree_degree * 2 + 1)
 
-		self.add_node(self.adversary, infected = False)
-		self.add_node(self.source, infected = True)
+		RegularTree.add_node(self,self.source, infected = True)
+
+
+	def add_node(self, u, attr_dict = None, **attr):
+		super(RegularTree, self).add_node(u, attr)
+		self.max_node = max(self.nodes())
 
 	def get_neighbors(self, sources):
 		neighbors = []
@@ -33,17 +35,6 @@ class RegularTree(nx.Graph):
 		H = nx.Graph.subgraph(self, nbunch)
 		return H
 
-	def add_edge(self, u, v):
-		super(RegularTree, self).add_edge(u, v)
-		super(RegularTree, self).add_edge(u, self.adversary)
-		super(RegularTree, self).add_edge(v, self.adversary)
-
-	def add_node(self, u, attr_dict = None, **attr):
-		super(RegularTree, self).add_node(u, attr)
-		if not (u == self.adversary):
-			super(RegularTree, self).add_edge(u, self.adversary)
-		self.max_node = max(self.nodes())
-		
 	def add_edges(self, source, node_list):
 		for node in node_list:
 			self.add_node(node, infected = False)
@@ -66,6 +57,27 @@ class RegularTree(nx.Graph):
 		neighbors = self.neighbors(source)
 		uninfected_neighbors = [neighbor for neighbor in neighbors if self.node[neighbor]['infected'] == False]
 		return uninfected_neighbors
+
+class RegularTreeGossip(RegularTree):
+
+	def __init__(self, degree = None, spreading_time = None):
+		super(RegularTreeGossip, self).__init__(degree, spreading_time)
+		self.adversary = -1
+		self.adversary_timestamps = SortedDict()
+
+		self.add_node(self.adversary, infected = False)
+		
+
+	def add_edge(self, u, v):
+		super(RegularTree, self).add_edge(u, v)
+		super(RegularTree, self).add_edge(u, self.adversary)
+		super(RegularTree, self).add_edge(v, self.adversary)
+
+	def add_node(self, u, attr_dict = None, **attr):
+		super(RegularTree, self).add_node(u, attr)
+		if not (u == self.adversary):
+			super(RegularTree, self).add_edge(u, self.adversary)
+		self.max_node = max(self.nodes())
 
 	def generate_timestamp_dict(self):
 		''' Creates a dict with nodes as keys and timestamps as values '''
