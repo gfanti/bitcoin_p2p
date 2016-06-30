@@ -20,6 +20,33 @@ class Estimator(object):
 		else:
 			return 0.0	
 
+
+class DiffusionEstimator(Estimator):
+	def __init__(self, G, verbose = False):
+		super(DiffusionEstimator, self).__init__(G, verbose)
+
+class FirstSpyDiffusionEstimator(DiffusionEstimator):
+
+	def __init__(self, G, verbose = False):
+		super(FirstSpyDiffusionEstimator, self).__init__(G, verbose)
+
+	def estimate_source(self):
+		min_timestamp = float('inf')
+		min_node = None
+		for node in self.G.nodes():
+			if node in self.G.adversary_timestamps:
+				if self.G.adversary_timestamps[node] <= min_timestamp:
+					min_timestamp = self.G.adversary_timestamps[node]
+					min_node = node
+
+		return [min_node]
+
+
+class GossipEstimator(Estimator):
+
+	def __init__(self, G, verbose = False):
+		super(GossipEstimator, self).__init__(G, verbose)
+
 	def get_starting_set(self, timestamp_dict):
 		# Gets the set of nodes within an appropriate radius of the 
 		# nodes that get the message first
@@ -40,7 +67,7 @@ class Estimator(object):
 			candidates.remove(self.G.adversary)
 		return candidates
 
-class FirstSpyEstimator(Estimator):
+class FirstSpyEstimator(GossipEstimator):
 
 	def __init__(self, G, verbose = False):
 		super(FirstSpyEstimator, self).__init__(G, verbose)
@@ -53,7 +80,7 @@ class FirstSpyEstimator(Estimator):
 		return candidates
 
 
-class MLEstimator(Estimator):
+class MLEstimator(GossipEstimator):
 
 	def __init__(self, G, verbose = False):
 		super(MLEstimator, self).__init__(G, verbose)
@@ -120,7 +147,7 @@ class MLEstimator(Estimator):
 		return (d + 1) + (d * pathlength)
 
 
-class MLEstimatorMP(Estimator):
+class MLEstimatorMP(GossipEstimator):
 
 	def __init__(self, G, verbose = False):
 		super(MLEstimatorMP, self).__init__(G, verbose)

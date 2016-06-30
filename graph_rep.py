@@ -4,6 +4,7 @@ import networkx as nx
 import random
 from sortedcontainers import SortedDict
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Regular tree that spreads messages according to Bitcoin protocol
 class RegularTree(nx.Graph):
@@ -63,20 +64,20 @@ class RegularTreeDiffusion(RegularTree):
 
 	def __init__(self, degree = None, spreading_time = None):
 		''' NB: Here the spreading_time	is actually the number of rings of the graph to infect'''
-		super(RegularTreeGossip, self).__init__(degree, spreading_time)
-		self.adversary = -1
+		super(RegularTreeDiffusion, self).__init__(degree, spreading_time)
 		self.lambda1 = 1 # spreading rate over the diffusion graph
 		self.lambda2 = 1 # spreading rate from a node to the adversary
 		self.adversary_timestamps = {}
 		self.received_timestamps = {}
+		self.received_timestamps[self.source] = 0
 
-		self.add_node(self.adversary, infected = False)
-
+		
 	def spread_message(self):
-		new_boundary = []
+		
 		count = 0
 		while count < self.spreading_time:
 			count += 1
+			new_boundary = []
 			# cycle through the active nodes, and spread with an exponential clock
 			for node in self.active:
 				# Check that all the nodes have enough neighbors
@@ -92,6 +93,7 @@ class RegularTreeDiffusion(RegularTree):
 				# Neighbor infection times
 				for new_node in new_nodes:
 					self.received_timestamps[new_node] = self.send_to_neighbor(node)
+			self.active = [i for i in new_boundary]
 
 	def send_to_adversary(self, node):
 		return self.received_timestamps[node] + np.random.exponential(self.lambda2)
